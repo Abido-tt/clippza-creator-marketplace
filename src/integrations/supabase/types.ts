@@ -61,19 +61,52 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_path: string | null
+          banner_path: string | null
+          bio: string
           created_at: string
           display_name: string
+          display_name_changed_at: string | null
           id: string
+          instagram_url: string | null
+          tiktok_url: string | null
+          username: string | null
+          username_changed_at: string | null
+          website_url: string | null
+          x_url: string | null
+          youtube_url: string | null
         }
         Insert: {
+          avatar_path?: string | null
+          banner_path?: string | null
+          bio?: string
           created_at?: string
           display_name?: string
+          display_name_changed_at?: string | null
           id: string
+          instagram_url?: string | null
+          tiktok_url?: string | null
+          username?: string | null
+          username_changed_at?: string | null
+          website_url?: string | null
+          x_url?: string | null
+          youtube_url?: string | null
         }
         Update: {
+          avatar_path?: string | null
+          banner_path?: string | null
+          bio?: string
           created_at?: string
           display_name?: string
+          display_name_changed_at?: string | null
           id?: string
+          instagram_url?: string | null
+          tiktok_url?: string | null
+          username?: string | null
+          username_changed_at?: string | null
+          website_url?: string | null
+          x_url?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
