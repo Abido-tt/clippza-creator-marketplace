@@ -43,9 +43,11 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -63,7 +65,9 @@ function AuthPage() {
         navigate({ to: "/dashboard" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setFormError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -116,15 +120,16 @@ function AuthPage() {
               )}
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <Button type="submit" className="w-full" size="lg" disabled={busy}>
                 {busy ? "Please wait…" : mode === "signup" ? `Join as ${role === "client" ? "Client" : "Clipper"}` : "Sign in"}
               </Button>
+              {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
               <p className="text-center text-sm text-muted-foreground">
                 {mode === "signup" ? "Already have an account? " : "New to Clippza? "}
                 <Button variant="link" type="button" className="h-auto p-0 font-semibold text-foreground underline" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>
