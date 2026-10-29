@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, Megaphone, PlusCircle, ListChecks, ShieldCheck, LogOut, Compass, Menu } from "lucide-react";
+import { LayoutGrid, Megaphone, PlusCircle, ListChecks, ShieldCheck, LogOut, Compass, Menu, UserRound } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/auth";
@@ -22,6 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (me?.isClient) items.push({ to: "/campaigns", label: "My campaigns", icon: Megaphone }, { to: "/campaigns/new", label: "New campaign", icon: PlusCircle });
   if (me?.isClipper) items.push({ to: "/campaigns", label: "Browse campaigns", icon: Compass }, { to: "/submissions", label: "My submissions", icon: ListChecks });
   if (me?.isAdmin) items.push({ to: "/admin", label: "Review queue", icon: ShieldCheck });
+  if (me?.isClient || me?.isClipper) items.push({ to: "/profile", label: "Profile", icon: UserRound });
 
   async function signOut() {
     await qc.cancelQueries();
