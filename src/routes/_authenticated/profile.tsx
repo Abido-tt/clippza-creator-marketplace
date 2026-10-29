@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMe } from "@/lib/auth";
 import { unwrap } from "@/lib/data";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import {
   BIO_MAX, DISPLAY_NAME_DAYS, USERNAME_DAYS, SOCIAL_FIELDS, type SocialKey,
   mediaFileError, nextChangeDate, normalizeUsername, socialUrlError, usernameError,
@@ -82,7 +83,7 @@ function ProfilePage() {
     setErrors(next);
     if (Object.keys(next).length) { document.getElementById(`f-${Object.keys(next)[0]}`)?.focus(); return; }
     setSaving(true);
-    const patch: Record<string, string | null> = { bio: bio.trim() };
+    const patch: TablesUpdate<"profiles"> = { bio: bio.trim() };
     if (nameChanged) patch.display_name = name.trim();
     if (userChanged) patch.username = u;
     for (const f of SOCIAL_FIELDS) patch[f.key] = links[f.key].trim() || null;
@@ -147,7 +148,7 @@ function ProfilePage() {
       <form onSubmit={save} noValidate className="grid gap-6 rounded-2xl border bg-card p-5 md:grid-cols-2 md:p-8">
         <div>
           <Label htmlFor="f-name">Display name</Label>
-          <Input id="f-name" value={name} maxLength={60} disabled={!!nameLock} aria-invalid={!!errors.name} aria-describedby="h-name e-name" onChange={(e) => setName(e.target.value)} className="mt-1.5" />
+          <Input id="f-name" value={name} maxLength={60} disabled={!!nameLock} aria-invalid={!!errors["name"]} aria-describedby="h-name e-name" onChange={(e) => setName(e.target.value)} className="mt-1.5" />
           <p id="h-name" className="mt-1 text-xs text-muted-foreground">{nameLock ? `You can change this again on ${fmt(nameLock)}.` : `Can be changed once every ${DISPLAY_NAME_DAYS} days.`}</p>
           {fieldErr("name")}
         </div>
@@ -155,7 +156,7 @@ function ProfilePage() {
           <Label htmlFor="f-username">Username</Label>
           <div className="relative mt-1.5">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
-            <Input id="f-username" value={username} maxLength={21} disabled={!!userLock} autoCapitalize="none" spellCheck={false} aria-invalid={!!errors.username} aria-describedby="h-username e-username" onChange={(e) => setUsername(e.target.value)} className="pl-7" />
+            <Input id="f-username" value={username} maxLength={21} disabled={!!userLock} autoCapitalize="none" spellCheck={false} aria-invalid={!!errors["username"]} aria-describedby="h-username e-username" onChange={(e) => setUsername(e.target.value)} className="pl-7" />
           </div>
           <p id="h-username" className="mt-1 text-xs text-muted-foreground">{userLock ? `You can change this again on ${fmt(userLock)}.` : `Lowercase letters, numbers, underscores. Once every ${USERNAME_DAYS} days.`}</p>
           {fieldErr("username")}
@@ -165,7 +166,7 @@ function ProfilePage() {
             <Label htmlFor="f-bio">Short bio</Label>
             <span aria-live="polite" className={`font-mono text-xs ${bio.length > BIO_MAX ? "text-destructive" : "text-muted-foreground"}`}>{bio.length}/{BIO_MAX}</span>
           </div>
-          <Textarea id="f-bio" value={bio} rows={3} aria-invalid={!!errors.bio} aria-describedby="e-bio" onChange={(e) => setBio(e.target.value)} className="mt-1.5" placeholder="What you clip, or what your brand is about." />
+          <Textarea id="f-bio" value={bio} rows={3} aria-invalid={!!errors["bio"]} aria-describedby="e-bio" onChange={(e) => setBio(e.target.value)} className="mt-1.5" placeholder="What you clip, or what your brand is about." />
           {fieldErr("bio")}
         </div>
         <fieldset className="grid gap-4 md:col-span-2 md:grid-cols-2">
