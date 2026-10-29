@@ -9,7 +9,7 @@ import { fmtNum, platformLabel } from "@/lib/format";
 import { QueryFeedback } from "@/components/QueryFeedback";
 
 export const Route = createFileRoute("/_authenticated/campaigns/")({
-  head: () => ({ meta: [{ title: "Campaigns — Clippza" }, { name: "description", content: "Clipping campaigns on Clippza." }, { property: "og:title", content: "Campaigns — Clippza" }, { property: "og:description", content: "Clipping campaigns on Clippza." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Campaigns — Clippza" }, { name: "description", content: "Clipping campaigns on Clippza." }, { property: "og:title", content: "Campaigns — Clippza" }, { property: "og:description", content: "Clipping campaigns on Clippza." }] }),
   component: Campaigns,
 });
 

@@ -16,7 +16,7 @@ type Platform = Database["public"]["Enums"]["clip_platform"];
 type CStatus = Database["public"]["Enums"]["campaign_status"];
 
 export const Route = createFileRoute("/_authenticated/campaigns/new")({
-  head: () => ({ meta: [{ title: "New campaign — Clippza" }, { name: "description", content: "Create a clipping campaign." }, { property: "og:title", content: "New campaign — Clippza" }, { property: "og:description", content: "Create a clipping campaign." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "New campaign — Clippza" }, { name: "description", content: "Create a clipping campaign." }, { property: "og:title", content: "New campaign — Clippza" }, { property: "og:description", content: "Create a clipping campaign." }] }),
   component: NewCampaign,
 });
 

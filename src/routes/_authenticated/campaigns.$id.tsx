@@ -20,7 +20,7 @@ import { unwrap } from "@/lib/data";
 type CStatus = Database["public"]["Enums"]["campaign_status"];
 
 export const Route = createFileRoute("/_authenticated/campaigns/$id")({
-  head: () => ({ meta: [{ title: "Campaign — Clippza" }, { name: "description", content: "Campaign brief and submissions." }, { property: "og:title", content: "Campaign — Clippza" }, { property: "og:description", content: "Campaign brief and submissions." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Campaign — Clippza" }, { name: "description", content: "Campaign brief and submissions." }, { property: "og:title", content: "Campaign — Clippza" }, { property: "og:description", content: "Campaign brief and submissions." }] }),
   component: Detail,
 });
 

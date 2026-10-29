@@ -17,7 +17,7 @@ import { unwrap } from "@/lib/data";
 import { QueryFeedback } from "@/components/QueryFeedback";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Review queue — Clippza" }, { name: "description", content: "Admin submission review." }, { property: "og:title", content: "Review queue — Clippza" }, { property: "og:description", content: "Admin submission review." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Review queue — Clippza" }, { name: "description", content: "Admin submission review." }, { property: "og:title", content: "Review queue — Clippza" }, { property: "og:description", content: "Admin submission review." }] }),
   component: Admin,
 });
 

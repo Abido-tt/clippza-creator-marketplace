@@ -10,7 +10,7 @@ import { unwrap } from "@/lib/data";
 import { QueryFeedback } from "@/components/QueryFeedback";
 
 export const Route = createFileRoute("/_authenticated/submissions")({
-  head: () => ({ meta: [{ title: "My submissions — Clippza" }, { name: "description", content: "Track your clip submissions." }, { property: "og:title", content: "My submissions — Clippza" }, { property: "og:description", content: "Track your clip submissions." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "My submissions — Clippza" }, { name: "description", content: "Track your clip submissions." }, { property: "og:title", content: "My submissions — Clippza" }, { property: "og:description", content: "Track your clip submissions." }] }),
   component: Subs,
 });
 

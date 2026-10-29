@@ -9,7 +9,7 @@ import { unwrap } from "@/lib/data";
 import { QueryFeedback } from "@/components/QueryFeedback";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Clippza" }, { name: "description", content: "Your Clippza overview." }, { property: "og:title", content: "Dashboard — Clippza" }, { property: "og:description", content: "Your Clippza overview." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Dashboard — Clippza" }, { name: "description", content: "Your Clippza overview." }, { property: "og:title", content: "Dashboard — Clippza" }, { property: "og:description", content: "Your Clippza overview." }] }),
   component: Dashboard,
 });
 
