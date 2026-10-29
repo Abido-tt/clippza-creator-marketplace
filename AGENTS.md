@@ -13,3 +13,5 @@
 - Store signup-selected client/clipper roles in a protected roles table through a signup trigger; admin is provisioned only through an owner-controlled privileged database action.
 - Admin review uses an authenticated server function and database role validation; views and rewards remain manual, noncash records.
 - Keep schema setup in an idempotent baseline migration so a remix with existing empty tables and a new database both work.
+- Use the public, non-nested `/auth/callback` route for signup email returns; let the auth SDK consume URL credentials and revalidate the user before showing confirmation success.
+- Keep signup-only password and auth form validation in `src/lib/auth-validation.ts` so live feedback and submit validation share the same rules without changing sign-in credentials.

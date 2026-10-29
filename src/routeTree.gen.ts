@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
+import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthenticatedCampaignsIndexRouteImport } from './routes/_authenticated/campaigns.index'
 import { Route as AuthenticatedCampaignsIdRouteImport } from './routes/_authenticated/campaigns.$id'
 import { Route as AuthenticatedCampaignsNewRouteImport } from './routes/_authenticated/campaigns.new'
@@ -49,6 +50,11 @@ const AuthenticatedSubmissionsRoute =
     path: '/submissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth_/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedCampaignsIndexRoute =
   AuthenticatedCampaignsIndexRouteImport.update({
     id: '/campaigns/',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/submissions': typeof AuthenticatedSubmissionsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaigns/$id': typeof AuthenticatedCampaignsIdRoute
   '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/campaigns/': typeof AuthenticatedCampaignsIndexRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/submissions': typeof AuthenticatedSubmissionsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaigns/$id': typeof AuthenticatedCampaignsIdRoute
   '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/campaigns': typeof AuthenticatedCampaignsIndexRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/submissions': typeof AuthenticatedSubmissionsRoute
+  '/auth_/callback': typeof AuthCallbackRoute
   '/_authenticated/campaigns/$id': typeof AuthenticatedCampaignsIdRoute
   '/_authenticated/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/_authenticated/campaigns/': typeof AuthenticatedCampaignsIndexRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/submissions'
+    | '/auth/callback'
     | '/campaigns/$id'
     | '/campaigns/new'
     | '/campaigns/'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/submissions'
+    | '/auth/callback'
     | '/campaigns/$id'
     | '/campaigns/new'
     | '/campaigns'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/submissions'
+    | '/auth_/callback'
     | '/_authenticated/campaigns/$id'
     | '/_authenticated/campaigns/new'
     | '/_authenticated/campaigns/'
@@ -138,6 +150,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -183,6 +196,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/submissions'
       preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth_/callback': {
+      id: '/auth_/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/campaigns/': {
       id: '/_authenticated/campaigns/'
@@ -233,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

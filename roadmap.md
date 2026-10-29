@@ -1,4 +1,6 @@
 # Clippza MVP
+- [x] Add valid confirmation return route, verified success/error states, and accessible signup password/field validation; preview/typecheck, 20 tests, and desktop/mobile checks pass.
+- [ ] Verify an actual signup email through confirmation to the role dashboard: requires a real confirmation link; no accounts were created or existing data changed.
 - [x] Inspect and preserve existing screens and identity.
 - [x] Apply minimal schema, signup roles, ownership guards, and RLS.
 - [x] Complete authentication, campaigns, submissions, and manual admin review.
