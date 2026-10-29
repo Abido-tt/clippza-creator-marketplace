@@ -160,6 +160,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      owns_campaign: { Args: { _id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client" | "clipper"
