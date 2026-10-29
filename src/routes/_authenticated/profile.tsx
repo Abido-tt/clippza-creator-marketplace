@@ -76,9 +76,9 @@ function ProfilePage() {
     const nameChanged = name.trim() !== p!.display_name;
     const u = normalizeUsername(username);
     const userChanged = u !== (p!.username ?? "");
-    if (nameChanged && (name.trim().length < 2 || name.trim().length > 60)) next.name = "Use 2–60 characters.";
-    if (userChanged) { const err = usernameError(username); if (err) next.username = err; }
-    if (bio.length > BIO_MAX) next.bio = `Keep it under ${BIO_MAX} characters.`;
+    if (nameChanged && (name.trim().length < 2 || name.trim().length > 60)) next["name"] = "Use 2–60 characters.";
+    if (userChanged) { const err = usernameError(username); if (err) next["username"] = err; }
+    if (bio.length > BIO_MAX) next["bio"] = `Keep it under ${BIO_MAX} characters.`;
     for (const f of SOCIAL_FIELDS) { const err = socialUrlError(links[f.key]); if (err) next[f.key] = err; }
     setErrors(next);
     if (Object.keys(next).length) { document.getElementById(`f-${Object.keys(next)[0]}`)?.focus(); return; }
