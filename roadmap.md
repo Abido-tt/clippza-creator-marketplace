@@ -1,4 +1,5 @@
 # Clippza MVP
+- [ ] Fix confirmation return route and add accessible signup password/field validation; verify without creating accounts.
 - [x] Inspect and preserve existing screens and identity.
 - [x] Apply minimal schema, signup roles, ownership guards, and RLS.
 - [x] Complete authentication, campaigns, submissions, and manual admin review.
