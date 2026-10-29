@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Clapperboard, Scissors } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/auth";
+import { signupRole } from "@/lib/validation";
 
 type Search = { mode?: "signin" | "signup"; role?: "client" | "clipper" };
 
@@ -32,6 +34,8 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const { user } = useSession();
+  useEffect(() => { if (user) navigate({ to: "/dashboard", replace: true }); }, [user, navigate]);
   const [mode, setMode] = useState(search.mode ?? "signin");
   const [role, setRole] = useState<"client" | "clipper">(search.role ?? "clipper");
   const [name, setName] = useState("");
@@ -48,7 +52,7 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/dashboard", data: { role, display_name: name } },
+          options: { emailRedirectTo: window.location.origin, data: { role: signupRole(role), display_name: name.trim() } },
         });
         if (error) throw error;
         if (data.session) navigate({ to: "/dashboard" });
@@ -84,6 +88,7 @@ function AuthPage() {
             <div className="surface-card p-8">
               <h2 className="font-display text-2xl font-bold">Check your inbox</h2>
               <p className="mt-2 text-muted-foreground">We sent a confirmation link to <b>{email}</b>. Open it to activate your {role} account.</p>
+              <Button variant="outline" className="mt-5" onClick={() => { setSent(false); setMode("signin"); }}>Return to sign in</Button>
             </div>
           ) : (
             <form onSubmit={submit} className="surface-card space-y-5 p-8">
@@ -95,12 +100,12 @@ function AuthPage() {
                 <>
                   <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Account type">
                     {([["client", "Client", "I run campaigns", Clapperboard], ["clipper", "Clipper", "I make clips", Scissors]] as const).map(([v, l, d, Icon]) => (
-                      <button type="button" role="radio" aria-checked={role === v} key={v} onClick={() => setRole(v)}
-                        className={cn("rounded-xl border-2 p-4 text-left transition", role === v ? "border-ink bg-lime/30" : "border-border hover:border-ink/40")}>
+                      <Button variant="outline" type="button" role="radio" aria-checked={role === v} key={v} onClick={() => setRole(v)}
+                        className={cn("h-auto flex-col items-start whitespace-normal rounded-lg border-2 p-4 text-left transition", role === v ? "border-ink bg-lime/30" : "border-border hover:border-ink/40")}>
                         <Icon className="size-5" />
                         <p className="mt-2 font-display font-bold">{l}</p>
                         <p className="text-xs text-muted-foreground">{d}</p>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                   <div className="space-y-1.5">
@@ -122,9 +127,9 @@ function AuthPage() {
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 {mode === "signup" ? "Already have an account? " : "New to Clippza? "}
-                <button type="button" className="font-semibold text-foreground underline" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>
+                <Button variant="link" type="button" className="h-auto p-0 font-semibold text-foreground underline" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>
                   {mode === "signup" ? "Sign in" : "Create an account"}
-                </button>
+                </Button>
               </p>
             </form>
           )}

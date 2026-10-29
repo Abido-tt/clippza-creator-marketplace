@@ -3,6 +3,7 @@ import { ArrowRight, Clapperboard, Link2, ShieldCheck, Megaphone, Scissors, Clip
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import hero from "@/assets/hero-phone.jpg";
+import { useSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,13 +20,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { user } = useSession();
   return (
     <div className="min-h-screen">
       <section className="relative overflow-hidden bg-ink text-ink-foreground grid-ink">
         <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
           <Logo />
           <div className="flex items-center gap-2">
-            <Button asChild variant="inkOutline" size="sm"><Link to="/auth">Sign in</Link></Button>
+            <Button asChild variant="inkOutline" size="sm"><Link to={user ? "/dashboard" : "/auth"}>{user ? "Dashboard" : "Sign in"}</Link></Button>
           </div>
         </header>
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-10 md:grid-cols-[1.15fr_1fr] md:pt-16">
@@ -108,8 +110,8 @@ function Landing() {
 
       <section className="mx-auto max-w-3xl px-5 py-16 text-center">
         <p className="text-sm text-muted-foreground">
-          Honest by design: Clippza does not process payments or payouts yet. Approved rewards are in-app
-          records from manual review — not verified platform analytics and not withdrawable cash.
+          Honest by design: views and proposed rewards are manual in-app records, not verified platform analytics.
+          Rewards are noncash records. Clippza does not process payments or payouts.
         </p>
       </section>
 
