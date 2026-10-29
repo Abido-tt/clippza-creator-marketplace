@@ -4,7 +4,7 @@ import { reviewSchema } from "@/lib/validation";
 
 export const reviewSubmission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => reviewSchema.parse(input))
+  .validator((input: unknown) => reviewSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { data: admin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
     if (roleError || !admin) throw new Error("Only an authorized admin can review submissions.");
