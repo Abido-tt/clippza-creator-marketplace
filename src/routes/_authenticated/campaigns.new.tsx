@@ -33,10 +33,11 @@ function NewCampaign() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!me?.isClient) return toast.error("A Client account is required");
     if (f.reference_url && !isHttpUrl(f.reference_url)) return toast.error("Reference URL must start with http(s)://");
     setBusy(true);
     const { data, error } = await supabase.from("campaigns").insert({
-      client_id: me!.id, title: f.title.trim(), brief: f.brief.trim(), platform: f.platform,
+      client_id: me.id, title: f.title.trim(), brief: f.brief.trim(), platform: f.platform,
       reference_url: f.reference_url.trim() || null, reward_rate: f.reward_rate ? Number(f.reward_rate) : null,
       reward_description: f.reward_description.trim(), target_views: f.target_views ? Number(f.target_views) : null, status: f.status,
     }).select("id").single();
@@ -49,14 +50,14 @@ function NewCampaign() {
   return (
     <div>
       <PageHeader kicker="Client" title="New campaign" />
-      <form onSubmit={submit} className="surface-card grid gap-5 p-6 md:grid-cols-2">
+      <form onSubmit={submit} className="grid gap-5 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2"><Label htmlFor="t">Title</Label><Input id="t" required minLength={3} maxLength={120} value={f.title} onChange={set("title")} /></div>
         <div className="space-y-1.5 md:col-span-2"><Label htmlFor="b">Brief</Label><Textarea id="b" required minLength={10} maxLength={4000} rows={5} value={f.brief} onChange={set("brief")} /></div>
         <div className="space-y-1.5"><Label htmlFor="p">Platform</Label><select id="p" className={sel} value={f.platform} onChange={set("platform")}>{PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></div>
         <div className="space-y-1.5"><Label htmlFor="s">Status</Label><select id="s" className={sel} value={f.status} onChange={set("status")}>{["draft", "open", "paused", "closed"].map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
         <div className="space-y-1.5 md:col-span-2"><Label htmlFor="r">Reference URL (optional)</Label><Input id="r" type="url" value={f.reference_url} onChange={set("reference_url")} placeholder="https://" /></div>
-        <div className="space-y-1.5"><Label htmlFor="rr">Reward rate (proposed, e.g. per 1K views)</Label><Input id="rr" type="number" min={0} step="0.01" value={f.reward_rate} onChange={set("reward_rate")} /></div>
-        <div className="space-y-1.5"><Label htmlFor="tv">Target views</Label><Input id="tv" type="number" min={1} value={f.target_views} onChange={set("target_views")} /></div>
+        <div className="space-y-1.5"><Label htmlFor="rr">Proposed in-app rate (per 1K views)</Label><Input id="rr" type="number" min={0} step="0.01" value={f.reward_rate} onChange={set("reward_rate")} /></div>
+        <div className="space-y-1.5"><Label htmlFor="tv">Target views</Label><Input id="tv" type="number" min={1} max={2147483647} step={1} value={f.target_views} onChange={set("target_views")} /></div>
         <div className="space-y-1.5 md:col-span-2"><Label htmlFor="rd">Reward description</Label><Textarea id="rd" rows={2} maxLength={500} value={f.reward_description} onChange={set("reward_description")} /></div>
         <RewardNotice className="md:col-span-2" />
         <div className="md:col-span-2"><Button type="submit" variant="lime" size="lg" disabled={busy}>{busy ? "Saving…" : "Create campaign"}</Button></div>
