@@ -29,8 +29,7 @@ export function StatusBadge({ status }: { status: string }) {
 export function RewardNotice({ className }: { className?: string }) {
   return (
     <p className={cn("text-xs text-muted-foreground", className)}>
-      Rewards are in-app records set after manual review. Payouts are not available yet — nothing
-      shown here is withdrawable cash.
+      Views and proposed rewards are manual review records, not platform-verified analytics. Rewards are noncash in-app records.
     </p>
   );
 }

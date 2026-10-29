@@ -14,4 +14,4 @@ export const fmtNum = (n: number | null | undefined) =>
 export const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
 
-export const isHttpUrl = (s: string) => /^https?:\/\/\S+\.\S+/i.test(s.trim());
+export { isPublicHttpUrl as isHttpUrl } from "@/lib/validation";
