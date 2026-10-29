@@ -16,3 +16,4 @@
 - Use the public, non-nested `/auth/callback` route for signup email returns; let the auth SDK consume URL credentials and revalidate the user before showing confirmation success.
 - Keep signup-only password and auth form validation in `src/lib/auth-validation.ts` so live feedback and submit validation share the same rules without changing sign-in credentials.
 - Theme is a `.dark` class on <html> set by an inline head script before paint and toggled by ThemeToggle; preference logic lives in `src/lib/theme.ts` (no theme package).
+- Keep public scroll-aware navigation inside the landing route, reserving its initial height and suspending hiding while focused or the mobile sheet is open; authenticated navigation stays independent.
