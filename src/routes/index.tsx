@@ -1,9 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Clapperboard, Link2, ShieldCheck, Megaphone, Scissors, ClipboardCheck } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Clapperboard, Link2, ShieldCheck, Megaphone, Scissors, ClipboardCheck, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import hero from "@/assets/hero-phone.jpg";
 import { useSession } from "@/lib/auth";
+
+const sections = [["#roles", "For brands & clippers"], ["#review", "How review works"]] as const;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,13 +26,37 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { user } = useSession();
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="min-h-screen">
       <section className="relative overflow-hidden bg-ink text-ink-foreground grid-ink">
-        <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+        <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-5">
           <Logo />
-          <div className="flex items-center gap-2">
-            <Button asChild variant="inkOutline" size="sm"><Link to={user ? "/dashboard" : "/auth"}>{user ? "Dashboard" : "Sign in"}</Link></Button>
+          <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+            {sections.map(([href, label]) => (
+              <a key={href} href={href} className="rounded-lg px-3 py-2 text-sm text-ink-foreground/80 transition hover:bg-ink-2 hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime">{label}</a>
+            ))}
+          </nav>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Button asChild variant="inkOutline" size="sm" className="hidden sm:inline-flex"><Link to={user ? "/dashboard" : "/auth"}>{user ? "Dashboard" : "Sign in"}</Link></Button>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open menu" className="min-h-10 min-w-10 rounded-lg hover:bg-ink-2 hover:text-ink-foreground md:hidden"><Menu className="size-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 border-ink-2 bg-ink text-ink-foreground [&>button]:text-ink-foreground">
+                <SheetHeader className="text-left">
+                  <SheetTitle className="text-ink-foreground">Menu</SheetTitle>
+                  <SheetDescription className="text-ink-foreground/70">Explore Clippza</SheetDescription>
+                </SheetHeader>
+                <nav aria-label="Main" className="mt-6 flex flex-col gap-1">
+                  {sections.map(([href, label]) => (
+                    <a key={href} href={href} onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm text-ink-foreground/85 hover:bg-ink-2 hover:text-ink-foreground">{label}</a>
+                  ))}
+                  <Link to={user ? "/dashboard" : "/auth"} onClick={() => setMenuOpen(false)} className="mt-3 flex min-h-11 items-center justify-center rounded-lg bg-lime px-3 text-sm font-semibold text-lime-foreground">{user ? "Dashboard" : "Sign in"}</Link>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </header>
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-10 md:grid-cols-[1.15fr_1fr] md:pt-16">
@@ -65,7 +94,7 @@ function Landing() {
         <div className="filmstrip h-4 bg-ink-2" aria-hidden />
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-20">
+      <section id="roles" className="mx-auto max-w-6xl scroll-mt-4 px-5 py-20">
         <h2 className="font-display text-3xl font-extrabold md:text-5xl">Two sides. One workflow.</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           <Side
@@ -92,7 +121,7 @@ function Landing() {
         </div>
       </section>
 
-      <section className="border-y bg-card">
+      <section id="review" className="scroll-mt-4 border-y bg-card">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-3">
           {[
             ["01", "Submitted", "A clipper submits a public clip URL to an open campaign."],
