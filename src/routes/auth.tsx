@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Clapperboard, Scissors } from "lucide-react";
+import { Clapperboard, Scissors, Circle, CircleCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth";
 import { signupRole } from "@/lib/validation";
+import { passwordRules, signinSchema, signupSchema } from "@/lib/auth-validation";
 
 type Search = { mode?: "signin" | "signup"; role?: "client" | "clipper" | undefined };
 
@@ -44,23 +45,60 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [errorFlash, setErrorFlash] = useState(false);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(flashTimer.current), []);
+
+  function changeField(field: string, value: string) {
+    if (field === "name") setName(value);
+    if (field === "email") setEmail(value);
+    if (field === "password") setPassword(value);
+    setFieldErrors((current) => ({ ...current, [field]: "" }));
+    setFormError("");
+  }
+
+  function switchMode(next: "signin" | "signup") {
+    setMode(next);
+    setFieldErrors({});
+    setFormError("");
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
+    const parsed = (mode === "signup" ? signupSchema : signinSchema).safeParse({ name, email, password });
+    if (!parsed.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const field = String(issue.path[0]);
+        errors[field] ??= issue.message;
+      }
+      setFieldErrors(errors);
+      const first = (mode === "signup" ? ["name", "email", "password"] : ["email", "password"]).find((field) => errors[field]);
+      if (first) {
+        (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>(`#${first}`)?.focus();
+        toast.error(errors[first]);
+      }
+      setErrorFlash(true);
+      clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setErrorFlash(false), 700);
+      return;
+    }
+    setFieldErrors({});
     setBusy(true);
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin, data: { role: signupRole(role), display_name: name.trim() } },
+          email: parsed.data.email,
+          password: parsed.data.password,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback`, data: { role: signupRole(role), display_name: name.trim() } },
         });
         if (error) throw error;
         if (data.session) navigate({ to: "/dashboard" });
         else setSent(true);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword(parsed.data);
         if (error) throw error;
         navigate({ to: "/dashboard" });
       }
@@ -95,7 +133,7 @@ function AuthPage() {
               <Button variant="outline" className="mt-5" onClick={() => { setSent(false); setMode("signin"); }}>Return to sign in</Button>
             </div>
           ) : (
-            <form onSubmit={submit} className="surface-card space-y-5 p-8">
+            <form onSubmit={submit} noValidate className="surface-card space-y-5 p-6 sm:p-8">
               <div>
                 <h2 className="font-display text-3xl font-extrabold">{mode === "signup" ? "Create your account" : "Welcome back"}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">{mode === "signup" ? "Choose how you'll use Clippza." : "Sign in to your dashboard."}</p>
@@ -113,18 +151,31 @@ function AuthPage() {
                     ))}
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="name">Display name</Label>
-                    <Input id="name" required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
+                    <Label htmlFor="name">Display name (required)</Label>
+                    <Input id="name" required maxLength={60} autoComplete="nickname" value={name} onChange={(e) => changeField("name", e.target.value)} aria-invalid={!!fieldErrors.name} aria-describedby={fieldErrors.name ? "name-error" : undefined} className={cn(fieldErrors.name && "border-destructive", fieldErrors.name && errorFlash && "auth-error-flash")} />
+                    {fieldErrors.name && <p id="name-error" className="text-sm text-destructive">{fieldErrors.name}</p>}
                   </div>
                 </>
               )}
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Label htmlFor="email">Email (required)</Label>
+                <Input id="email" type="email" autoComplete="email" required maxLength={255} value={email} onChange={(e) => changeField("email", e.target.value)} aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "email-error" : undefined} className={cn(fieldErrors.email && "border-destructive", fieldErrors.email && errorFlash && "auth-error-flash")} />
+                {fieldErrors.email && <p id="email-error" className="text-sm text-destructive">{fieldErrors.email}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Label htmlFor="password">Password (required)</Label>
+                <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => changeField("password", e.target.value)} aria-invalid={!!fieldErrors.password} aria-describedby={[mode === "signup" ? "password-rules" : "", fieldErrors.password ? "password-error" : ""].filter(Boolean).join(" ") || undefined} className={cn(fieldErrors.password && "border-destructive", fieldErrors.password && errorFlash && "auth-error-flash")} />
+                {mode === "signup" && <ul id="password-rules" aria-label="Password requirements" className="space-y-1.5 pt-2 text-sm">
+                  {passwordRules.map((rule) => {
+                    const complete = rule.test(password);
+                    const Icon = complete ? CircleCheck : Circle;
+                    return <li key={rule.id} className={cn("flex items-center gap-2", complete ? "text-success-foreground" : "text-muted-foreground")}>
+                      <Icon className="size-4 shrink-0" aria-hidden /><span>{rule.label}<span className="sr-only">{complete ? ": complete" : ": not yet met"}</span></span>
+                    </li>;
+                  })}
+                </ul>}
+                {mode === "signup" && <span role="status" aria-live="polite" className="sr-only">{passwordRules.filter((rule) => rule.test(password)).length} of 5 password requirements complete.</span>}
+                {fieldErrors.password && <p id="password-error" className="text-sm text-destructive">{fieldErrors.password}</p>}
               </div>
               <Button type="submit" className="w-full" size="lg" disabled={busy}>
                 {busy ? "Please wait…" : mode === "signup" ? `Join as ${role === "client" ? "Client" : "Clipper"}` : "Sign in"}
@@ -132,7 +183,7 @@ function AuthPage() {
               {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
               <p className="text-center text-sm text-muted-foreground">
                 {mode === "signup" ? "Already have an account? " : "New to Clippza? "}
-                <Button variant="link" type="button" className="h-auto p-0 font-semibold text-foreground underline" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>
+                <Button variant="link" type="button" className="h-auto p-0 font-semibold text-foreground underline" onClick={() => switchMode(mode === "signup" ? "signin" : "signup")}>
                   {mode === "signup" ? "Sign in" : "Create an account"}
                 </Button>
               </p>
