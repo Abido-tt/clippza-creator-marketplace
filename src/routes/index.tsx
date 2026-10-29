@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Clapperboard, Link2, ShieldCheck, Megaphone, Scissors, ClipboardCheck, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
@@ -27,10 +27,38 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const { user } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let pauseTimer: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      const nextY = Math.max(0, window.scrollY);
+      const hasFocus = headerRef.current?.matches(":focus-within");
+      if (nextY <= 8 || menuOpen || hasFocus || nextY < lastY) {
+        setNavHidden(false);
+      } else if (nextY > lastY) {
+        setNavHidden(true);
+      }
+      lastY = nextY;
+      clearTimeout(pauseTimer);
+      pauseTimer = setTimeout(() => setNavHidden(false), 180);
+    };
+    if (menuOpen) setNavHidden(false);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(pauseTimer);
+    };
+  }, [menuOpen]);
+
   return (
     <div className="min-h-screen">
       <section className="relative overflow-hidden bg-ink text-ink-foreground grid-ink">
-        <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-5">
+        <div className="h-24" aria-hidden />
+        <header ref={headerRef} aria-hidden={navHidden || undefined} inert={navHidden}
+          className={`fixed inset-x-4 top-3 z-30 mx-auto flex min-h-16 max-w-5xl items-center justify-between gap-2 rounded-full border border-ink-foreground/20 bg-ink/95 px-4 py-2 text-ink-foreground shadow-lime backdrop-blur-md transition-transform duration-200 ease-out motion-reduce:transition-none sm:px-5 ${navHidden ? "-translate-y-[calc(100%+1rem)]" : "translate-y-0"}`}>
           <Logo />
           <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
             {sections.map(([href, label]) => (
@@ -42,7 +70,7 @@ function Landing() {
             <Button asChild variant="inkOutline" size="sm" className="hidden sm:inline-flex"><Link to={user ? "/dashboard" : "/auth"}>{user ? "Dashboard" : "Sign in"}</Link></Button>
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open menu" className="min-h-10 min-w-10 rounded-lg hover:bg-ink-2 hover:text-ink-foreground md:hidden"><Menu className="size-5" /></Button>
+               <Button variant="ghost" size="icon" aria-label="Open menu" className="min-h-10 min-w-10 rounded-lg hover:bg-ink-2 hover:text-ink-foreground md:hidden"><Menu className="size-5" /></Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-72 border-ink-2 bg-ink text-ink-foreground [&>button]:text-ink-foreground">
                 <SheetHeader className="text-left">
