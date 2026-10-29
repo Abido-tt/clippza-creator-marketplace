@@ -8,3 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep private screens under the managed `_authenticated` layout; database RLS and immutable-field triggers enforce access independently of navigation.
+- Store signup-selected client/clipper roles in a protected roles table through a signup trigger; admin is provisioned only through an owner-controlled privileged database action.
+- Admin review uses an authenticated server function and database role validation; views and rewards remain manual, noncash records.
+- Keep schema setup in an idempotent baseline migration so a remix with existing empty tables and a new database both work.
