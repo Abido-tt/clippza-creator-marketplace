@@ -161,6 +161,7 @@ export type Database = {
         Returns: boolean
       }
       owns_campaign: { Args: { _id: string }; Returns: boolean }
+      valid_public_link: { Args: { value: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client" | "clipper"
