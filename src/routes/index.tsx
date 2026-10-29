@@ -26,6 +26,7 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { user } = useSession();
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="min-h-screen">
       <section className="relative overflow-hidden bg-ink text-ink-foreground grid-ink">
@@ -93,7 +94,7 @@ function Landing() {
         <div className="filmstrip h-4 bg-ink-2" aria-hidden />
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-20">
+      <section id="roles" className="mx-auto max-w-6xl scroll-mt-4 px-5 py-20">
         <h2 className="font-display text-3xl font-extrabold md:text-5xl">Two sides. One workflow.</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           <Side
@@ -120,7 +121,7 @@ function Landing() {
         </div>
       </section>
 
-      <section className="border-y bg-card">
+      <section id="review" className="scroll-mt-4 border-y bg-card">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-3">
           {[
             ["01", "Submitted", "A clipper submits a public clip URL to an open campaign."],
