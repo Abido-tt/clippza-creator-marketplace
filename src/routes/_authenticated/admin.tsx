@@ -10,19 +10,24 @@ import { PageHeader, EmptyState } from "@/components/AppShell";
 import { RewardNotice } from "@/components/StatusBadge";
 import { SubmissionRow } from "@/components/SubmissionRow";
 import { useMe } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { reviewSubmission } from "@/lib/review.functions";
+import { reviewSchema } from "@/lib/validation";
+import { unwrap } from "@/lib/data";
+import { QueryFeedback } from "@/components/QueryFeedback";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Review queue — Clippza" }, { name: "description", content: "Admin submission review." }, { property: "og:title", content: "Review queue — Clippza" }, { property: "og:description", content: "Admin submission review." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Review queue — Clippza" }, { name: "description", content: "Admin submission review." }, { property: "og:title", content: "Review queue — Clippza" }, { property: "og:description", content: "Admin submission review." }] }),
   component: Admin,
 });
 
 function Admin() {
   const { me } = useMe();
   const [tab, setTab] = useState<"submitted" | "approved" | "rejected">("submitted");
-  const { data } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-subs", tab],
     enabled: !!me?.isAdmin,
-    queryFn: async () => (await supabase.from("submissions").select("*, campaigns(title)").eq("status", tab).order("created_at")).data ?? [],
+    queryFn: async () => unwrap(await supabase.from("submissions").select("*, campaigns(title)").eq("status", tab).order("created_at")) ?? [],
   });
   if (me && !me.isAdmin) return <EmptyState title="Admins only" body="This area is restricted to reviewers." />;
   return (
@@ -34,7 +39,7 @@ function Admin() {
         ))}
       </div>
       <RewardNotice className="mb-6" />
-      {!data?.length ? <EmptyState title="Queue is clear" body="No submissions in this state." /> : (
+      {error ? <QueryFeedback error={error} retry={refetch} /> : isLoading ? <p role="status">Loading review queue…</p> : !data?.length ? <EmptyState title="Queue is clear" body="No submissions in this state." /> : (
         <div className="space-y-3">{data.map((s) => (
           <SubmissionRow key={s.id} s={s} title={s.campaigns?.title}>{s.status === "submitted" && <Review id={s.id} />}</SubmissionRow>
         ))}</div>
@@ -44,27 +49,31 @@ function Admin() {
 }
 
 function Review({ id }: { id: string }) {
+  const review = useServerFn(reviewSubmission);
   const qc = useQueryClient();
   const [views, setViews] = useState("");
   const [reward, setReward] = useState("");
   const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
   async function decide(status: "approved" | "rejected") {
-    const { error } = await supabase.from("submissions").update({
-      status, review_note: note.trim() || null,
-      reported_views: views ? Number(views) : null, proposed_reward: reward ? Number(reward) : null,
-    }).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success(`Submission ${status}`);
-    qc.invalidateQueries({ queryKey: ["admin-subs"] });
+    const parsed = reviewSchema.safeParse({ id, status, review_note: note, reported_views: views ? Number(views) : null, proposed_reward: reward ? Number(reward) : null });
+    if (!parsed.success) return void toast.error(parsed.error.issues[0]?.message ?? "Check your review values");
+    setBusy(true);
+    try {
+      await review({ data: parsed.data });
+      toast.success(`Submission ${status}`);
+      await qc.invalidateQueries();
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Review could not be saved"); }
+    finally { setBusy(false); }
   }
   return (
     <div className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2">
       <Input type="number" min={0} placeholder="Reported views" value={views} onChange={(e) => setViews(e.target.value)} aria-label="Reported views" />
       <Input type="number" min={0} step="0.01" placeholder="Proposed in-app reward" value={reward} onChange={(e) => setReward(e.target.value)} aria-label="Proposed reward" />
-      <Textarea className="sm:col-span-2" rows={2} placeholder="Review note" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Review note" />
+      <Textarea className="sm:col-span-2" rows={2} required maxLength={1000} placeholder="Review note (required)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Review note" />
       <div className="flex gap-2 sm:col-span-2">
-        <Button variant="lime" onClick={() => decide("approved")}>Approve</Button>
-        <Button variant="destructive" onClick={() => decide("rejected")}>Reject</Button>
+        <Button disabled={busy} variant="lime" onClick={() => decide("approved")}>{busy ? "Saving…" : "Approve"}</Button>
+        <Button disabled={busy} variant="destructive" onClick={() => decide("rejected")}>Reject</Button>
       </div>
     </div>
   );

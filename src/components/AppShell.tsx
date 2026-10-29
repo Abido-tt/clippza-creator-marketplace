@@ -5,11 +5,13 @@ import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { QueryFeedback } from "@/components/QueryFeedback";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutGrid };
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { me } = useMe();
+  const { me, loading, error, retry } = useMe();
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -28,15 +30,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const roleLabel = me?.isAdmin ? "Admin" : me?.isClient ? "Client" : me?.isClipper ? "Clipper" : "";
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[240px_1fr]">
-      <aside className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-ink px-4 py-3 text-ink-foreground md:h-screen md:flex-col md:items-stretch md:justify-start md:px-4 md:py-6">
+    <div className="min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+      <aside className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 bg-ink px-4 py-3 text-ink-foreground md:h-screen md:flex-col md:flex-nowrap md:items-stretch md:justify-start md:px-4 md:py-6">
         <Logo className="md:px-2" />
-        <nav className="flex gap-1 overflow-x-auto md:mt-8 md:flex-col" aria-label="Main">
+        <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:mt-8 md:flex-col" aria-label="Main">
           {items.map((i) => (
             <Link key={i.to + i.label} to={i.to} activeOptions={{ exact: true }}
               className="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-foreground/75 transition hover:bg-ink-2 hover:text-ink-foreground"
               activeProps={{ className: "bg-lime !text-lime-foreground font-semibold hover:bg-lime" }}>
-              <i.icon className="size-4" /> <span className="hidden sm:inline">{i.label}</span>
+              <i.icon className="size-4" /> <span>{i.label}</span>
             </Link>
           ))}
         </nav>
@@ -45,13 +47,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <p className="truncate text-sm font-semibold">{me?.name}</p>
             <p className="font-mono text-[11px] uppercase tracking-widest text-lime">{roleLabel}</p>
           </div>
-          <button onClick={signOut} className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-foreground/70 hover:bg-ink-2">
+          <Button variant="ghost" onClick={signOut} className="mt-2 flex w-full justify-start items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-foreground/70 hover:bg-ink-2 hover:text-ink-foreground">
             <LogOut className="size-4" /> Sign out
-          </button>
+          </Button>
         </div>
-        <button onClick={signOut} aria-label="Sign out" className="rounded-md p-2 md:hidden"><LogOut className="size-4" /></button>
+        <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out" title="Sign out" className="rounded-md p-2 md:hidden"><LogOut className="size-4" /></Button>
       </aside>
-      <main className="mx-auto w-full max-w-5xl px-4 py-8 md:px-10 md:py-12">{children}</main>
+      <main className="mx-auto min-w-0 w-full max-w-5xl px-4 py-8 md:px-10 md:py-12">{loading ? <p role="status" className="text-muted-foreground">Loading your account…</p> : error ? <QueryFeedback error={error} retry={retry} /> : children}</main>
     </div>
   );
 }

@@ -6,21 +6,23 @@ import { PageHeader, EmptyState } from "@/components/AppShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useMe } from "@/lib/auth";
 import { fmtNum, platformLabel } from "@/lib/format";
+import { QueryFeedback } from "@/components/QueryFeedback";
 
 export const Route = createFileRoute("/_authenticated/campaigns/")({
-  head: () => ({ meta: [{ title: "Campaigns — Clippza" }, { name: "description", content: "Clipping campaigns on Clippza." }, { property: "og:title", content: "Campaigns — Clippza" }, { property: "og:description", content: "Clipping campaigns on Clippza." }] }),
+  head: () => ({ meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { title: "Campaigns — Clippza" }, { name: "description", content: "Clipping campaigns on Clippza." }, { property: "og:title", content: "Campaigns — Clippza" }, { property: "og:description", content: "Clipping campaigns on Clippza." }] }),
   component: Campaigns,
 });
 
 function Campaigns() {
   const { me } = useMe();
   const mine = !!me?.isClient && !me?.isAdmin;
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["campaigns", mine, me?.id],
     enabled: !!me,
     queryFn: async () => {
+      if (!me) throw new Error("Sign in to view campaigns");
       let q = supabase.from("campaigns").select("*").order("created_at", { ascending: false });
-      q = mine ? q.eq("client_id", me!.id) : me!.isAdmin ? q : q.eq("status", "open");
+      q = mine ? q.eq("client_id", me.id) : me.isAdmin ? q : q.eq("status", "open");
       const { data, error } = await q;
       if (error) throw error;
       return data;
@@ -30,7 +32,7 @@ function Campaigns() {
     <div>
       <PageHeader kicker="Campaigns" title={mine ? "My campaigns" : "Open campaigns"}
         action={me?.isClient && <Button asChild variant="lime"><Link to="/campaigns/new">New campaign</Link></Button>} />
-      {isLoading ? <p className="text-muted-foreground">Loading…</p> : !data?.length ? (
+      {error ? <QueryFeedback error={error} retry={refetch} /> : isLoading ? <p role="status" className="text-muted-foreground">Loading…</p> : !data?.length ? (
         <EmptyState title={mine ? "No campaigns yet" : "No open campaigns right now"}
           body={mine ? "Create your first brief to start receiving clips." : "Check back soon — new briefs appear here when clients open them."}
           action={mine && <Button asChild><Link to="/campaigns/new">Create campaign</Link></Button>} />

@@ -109,7 +109,8 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: 0; overflow-wrap: anywhere; }
+  p, a { overflow-wrap: anywhere; }
 }
 
 @utility font-display { font-family: var(--font-display); }
@@ -154,3 +155,7 @@
 
 @keyframes rec-pulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
 @utility rec-dot { animation: rec-pulse 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
