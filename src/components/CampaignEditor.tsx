@@ -14,7 +14,7 @@ export function CampaignEditor({ campaign, close, saved }: { campaign: Tables<"c
   const change = (key: keyof typeof f, value: string) => setF(prev => ({ ...prev, [key]: value }));
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (f.reference_url && !isHttpUrl(f.reference_url)) return toast.error("Enter a public reference URL");
+    if (f.reference_url && !isHttpUrl(f.reference_url)) return void toast.error("Enter a public reference URL");
     setBusy(true);
     try {
       const { error } = await supabase.from("campaigns").update({ ...f, title: f.title.trim(), brief: f.brief.trim(), reference_url: f.reference_url.trim() || null, reward_rate: f.reward_rate ? Number(f.reward_rate) : null, target_views: f.target_views ? Number(f.target_views) : null }).eq("id", campaign.id);

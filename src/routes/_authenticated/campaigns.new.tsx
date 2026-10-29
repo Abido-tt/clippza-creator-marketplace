@@ -33,8 +33,8 @@ function NewCampaign() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!me?.isClient) return toast.error("A Client account is required");
-    if (f.reference_url && !isHttpUrl(f.reference_url)) return toast.error("Reference URL must start with http(s)://");
+    if (!me?.isClient) return void toast.error("A Client account is required");
+    if (f.reference_url && !isHttpUrl(f.reference_url)) return void toast.error("Reference URL must start with http(s)://");
     setBusy(true);
     const { data, error } = await supabase.from("campaigns").insert({
       client_id: me.id, title: f.title.trim(), brief: f.brief.trim(), platform: f.platform,
@@ -42,7 +42,7 @@ function NewCampaign() {
       reward_description: f.reward_description.trim(), target_views: f.target_views ? Number(f.target_views) : null, status: f.status,
     }).select("id").single();
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     toast.success("Campaign created");
     navigate({ to: "/campaigns/$id", params: { id: data.id } });
   }

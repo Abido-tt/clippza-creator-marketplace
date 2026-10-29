@@ -11,12 +11,12 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth";
 import { signupRole } from "@/lib/validation";
 
-type Search = { mode?: "signin" | "signup"; role?: "client" | "clipper" };
+type Search = { mode?: "signin" | "signup"; role?: "client" | "clipper" | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    mode: s.mode === "signup" ? "signup" : "signin",
-    role: s.role === "client" ? "client" : s.role === "clipper" ? "clipper" : undefined,
+    mode: s["mode"] === "signup" ? "signup" : "signin",
+    role: s["role"] === "client" ? "client" : s["role"] === "clipper" ? "clipper" : undefined,
   }),
   head: () => ({
     meta: [

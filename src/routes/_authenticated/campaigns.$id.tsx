@@ -53,19 +53,19 @@ function Detail() {
     setChangingStatus(true);
     const { error } = await supabase.from("campaigns").update({ status }).eq("id", id);
     setChangingStatus(false);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     toast.success(`Campaign ${status}`);
     qc.invalidateQueries();
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!me?.isClipper) return toast.error("A Clipper account is required");
-    if (!isHttpUrl(url)) return toast.error("Enter a public URL starting with http(s)://");
+    if (!me?.isClipper) return void toast.error("A Clipper account is required");
+    if (!isHttpUrl(url)) return void toast.error("Enter a public URL starting with http(s)://");
     setBusy(true);
     const { error } = await supabase.from("submissions").insert({ campaign_id: id, clipper_id: me.id, clip_url: url.trim(), note: note.trim() || null });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     toast.success("Clip submitted for review");
     setUrl(""); setNote("");
     qc.invalidateQueries();

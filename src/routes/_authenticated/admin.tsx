@@ -57,7 +57,7 @@ function Review({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
   async function decide(status: "approved" | "rejected") {
     const parsed = reviewSchema.safeParse({ id, status, review_note: note, reported_views: views ? Number(views) : null, proposed_reward: reward ? Number(reward) : null });
-    if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? "Check your review values");
+    if (!parsed.success) return void toast.error(parsed.error.issues[0]?.message ?? "Check your review values");
     setBusy(true);
     try {
       await review({ data: parsed.data });
