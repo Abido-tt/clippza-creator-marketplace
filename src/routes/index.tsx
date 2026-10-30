@@ -172,12 +172,6 @@ function Landing() {
         </p>
       </section>
 
-      <footer className="bg-ink py-8 text-ink-foreground">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5">
-          <Logo />
-          <p className="text-sm text-ink-foreground/60">© {new Date().getFullYear()} Clippza</p>
-        </div>
-      </footer>
     </div>
   );
 }
