@@ -70,7 +70,7 @@ function RecoveryPage() {
     verifyRecovery(window.location.href)
       .then(() => { if (active) setState("form"); })
       .catch(() => { if (active) setState("error"); })
-      .finally(() => { if (active) window.history.replaceState(window.history.state, "", window.location.pathname); });
+      .finally(() => { if (active) window.history.replaceState(window.history.state, "", `${window.location.pathname}?mode=recovery`); });
     return () => { active = false; };
   }, []);
 
