@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid, Megaphone, PlusCircle, ListChecks, ShieldCheck, LogOut, Compass, Menu, UserRound } from "lucide-react";
@@ -77,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </aside>
-      <main className="mx-auto min-w-0 w-full max-w-5xl px-4 py-8 md:px-10 md:py-12">{loading ? <p role="status" className="text-muted-foreground">Loading your account…</p> : error ? <QueryFeedback error={error} retry={retry} /> : children}</main>
+      <main className="mx-auto min-w-0 w-full max-w-5xl px-4 py-8 md:px-10 md:py-12">{loading ? <div role="status" className="space-y-6"><span className="sr-only">Loading your account…</span><div aria-hidden className="space-y-3"><Skeleton className="h-3 w-24 motion-reduce:animate-none" /><Skeleton className="h-9 w-64 max-w-full motion-reduce:animate-none" /></div><div aria-hidden className="grid gap-4 md:grid-cols-2"><Skeleton className="h-32 motion-reduce:animate-none" /><Skeleton className="h-32 motion-reduce:animate-none" /></div></div> : error ? <QueryFeedback error={error} retry={retry} /> : children}</main>
     </div>
   );
 }

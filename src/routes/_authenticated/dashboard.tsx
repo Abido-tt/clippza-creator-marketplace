@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/AppShell";
@@ -34,7 +35,7 @@ function Dashboard() {
   return (
     <div>
       <PageHeader kicker="Overview" title={`Hi, ${me?.name ?? ""}`} />
-      {error ? <QueryFeedback error={error} retry={refetch} /> : isLoading ? <p role="status">Loading overview…</p> : <div className="mb-8 grid grid-cols-3 gap-3 border-y py-5">{summary?.map(item => <div key={item.label}><p className="text-xs text-muted-foreground">{item.label}</p><p className="font-display text-3xl font-bold">{item.value}</p></div>)}</div>}
+      {error ? <QueryFeedback error={error} retry={refetch} /> : isLoading ? <div role="status" className="mb-8 grid grid-cols-3 gap-3 border-y py-5"><span className="sr-only">Loading overview…</span>{[0, 1, 2].map((i) => <div key={i} aria-hidden className="space-y-2"><Skeleton className="h-3 w-16 motion-reduce:animate-none" /><Skeleton className="h-8 w-12 motion-reduce:animate-none" /></div>)}</div> : <div className="mb-8 grid grid-cols-3 gap-3 border-y py-5">{summary?.map(item => <div key={item.label}><p className="text-xs text-muted-foreground">{item.label}</p><p className="font-display text-3xl font-bold">{item.value}</p></div>)}</div>}
       {me && !me.roles.length && <p role="alert">Your account has no assigned role. The workspace owner needs to review its setup.</p>}
       <div className="grid gap-4 md:grid-cols-2">
         {me?.isClient && (
