@@ -48,6 +48,61 @@ function AuthPage() {
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<"name" | "email" | "password", string>>>({});
   const [errorFlash, setErrorFlash] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetNotice, setResetNotice] = useState("");
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendNotice, setResendNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  async function forgotPassword() {
+    if (resetBusy) return;
+    setResetNotice("");
+    const parsed = signinSchema.shape.email.safeParse(email);
+    if (!parsed.success) {
+      const msg = email.trim() ? parsed.error.issues[0]?.message ?? "Enter a valid email" : "Enter your email above, then choose Forgot password.";
+      setFieldErrors((c) => ({ ...c, email: msg }));
+      document.getElementById("email")?.focus();
+      toast.error(msg);
+      return;
+    }
+    setResetBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo: `${window.location.origin}/auth/callback?mode=recovery` });
+      if (error && error.status === 429) throw new Error("Too many requests. Please wait a minute and try again.");
+      if (error && !error.status) throw new Error("We couldn't send the reset email. Check your connection and try again.");
+      const msg = "If an account exists for that email, a password reset link is on its way.";
+      setResetNotice(msg);
+      toast.success(msg);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setResetBusy(false);
+    }
+  }
+
+  async function resendConfirmation() {
+    if (resendBusy || resendCooldown > 0) return;
+    setResendBusy(true);
+    setResendNotice(null);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+      if (error) throw error;
+      setResendNotice({ ok: true, text: "A new confirmation email is on its way." });
+      toast.success("Confirmation email sent again.");
+    } catch (err) {
+      const text = err instanceof Error ? err.message : "Couldn't resend the email.";
+      setResendNotice({ ok: false, text });
+      toast.error(text);
+    } finally {
+      setResendBusy(false);
+      setResendCooldown(60);
+    }
+  }
   const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(flashTimer.current), []);
 
@@ -63,6 +118,7 @@ function AuthPage() {
     setMode(next);
     setFieldErrors({});
     setFormError("");
+    setResetNotice("");
   }
 
   async function submit(e: React.FormEvent) {
@@ -131,7 +187,13 @@ function AuthPage() {
             <div className="surface-card p-8">
               <h2 className="font-display text-2xl font-bold">Check your inbox</h2>
               <p className="mt-2 text-muted-foreground">We sent a confirmation link to <b>{email}</b>. Open it to activate your {role} account.</p>
-              <Button variant="outline" className="mt-5" onClick={() => { setSent(false); setMode("signin"); }}>Return to sign in</Button>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button variant="lime" disabled={resendBusy || resendCooldown > 0} onClick={resendConfirmation}>
+                  {resendBusy ? "Sending…" : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend confirmation email"}
+                </Button>
+                <Button variant="outline" onClick={() => { setSent(false); setMode("signin"); }}>Return to sign in</Button>
+              </div>
+              <p role="status" aria-live="polite" className={cn("mt-3 text-sm", resendNotice?.ok ? "text-success-foreground" : "text-destructive")}>{resendNotice?.text}</p>
             </div>
           ) : (
             <form onSubmit={submit} noValidate className="surface-card space-y-5 p-6 sm:p-8">
@@ -184,6 +246,12 @@ function AuthPage() {
                 </ul>}
                 {mode === "signup" && <span role="status" aria-live="polite" className="sr-only">{passwordRules.filter((rule) => rule.test(password)).length} of 5 password requirements complete.</span>}
                 {fieldErrors.password && <p id="password-error" className="text-sm text-destructive">{fieldErrors.password}</p>}
+                {mode === "signin" && <div className="text-right">
+                  <Button variant="link" type="button" className="h-auto p-0 text-sm font-semibold text-foreground underline" disabled={resetBusy} aria-describedby={resetNotice ? "reset-notice" : undefined} onClick={forgotPassword}>
+                    {resetBusy ? "Sending reset link…" : "Forgot password?"}
+                  </Button>
+                </div>}
+                {mode === "signin" && <p id="reset-notice" role="status" aria-live="polite" className="text-sm text-success-foreground">{resetNotice}</p>}
               </div>
               <Button type="submit" className="w-full" size="lg" disabled={busy}>
                 {busy ? "Please wait…" : mode === "signup" ? `Join as ${role === "client" ? "Client" : "Clipper"}` : "Sign in"}
