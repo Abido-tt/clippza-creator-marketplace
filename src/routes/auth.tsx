@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Clapperboard, Scissors, Circle, CircleCheck } from "lucide-react";
+import { Clapperboard, Scissors, Circle, CircleCheck, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<"name" | "email" | "password", string>>>({});
@@ -162,9 +163,16 @@ function AuthPage() {
                 <Input id="email" type="email" autoComplete="email" required maxLength={255} value={email} onChange={(e) => changeField("email", e.target.value)} aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "email-error" : undefined} className={cn(fieldErrors.email && "border-destructive", fieldErrors.email && errorFlash && "auth-error-flash")} />
                 {fieldErrors.email && <p id="email-error" className="text-sm text-destructive">{fieldErrors.email}</p>}
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Password (required)</Label>
-                <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => changeField("password", e.target.value)} aria-invalid={!!fieldErrors.password} aria-describedby={[mode === "signup" ? "password-rules" : "", fieldErrors.password ? "password-error" : ""].filter(Boolean).join(" ") || undefined} className={cn(fieldErrors.password && "border-destructive", fieldErrors.password && errorFlash && "auth-error-flash")} />
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Password (required)</Label>
+        <div className="relative">
+          <Input id="password" type={showPassword ? "text" : "password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => changeField("password", e.target.value)} aria-invalid={!!fieldErrors.password} aria-describedby={[mode === "signup" ? "password-rules" : "", fieldErrors.password ? "password-error" : ""].filter(Boolean).join(" ") || undefined} className={cn("pr-11", fieldErrors.password && "border-destructive", fieldErrors.password && errorFlash && "auth-error-flash")} />
+          <Button type="button" variant="ghost" size="icon" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            {showPassword ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+          </Button>
+        </div>
                 {mode === "signup" && <ul id="password-rules" aria-label="Password requirements" className="space-y-1.5 pt-2 text-sm">
                   {passwordRules.map((rule) => {
                     const complete = rule.test(password);
