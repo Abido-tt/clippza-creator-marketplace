@@ -73,8 +73,7 @@ function AuthPage() {
     setResetBusy(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo: `${window.location.origin}/auth/callback?mode=recovery` });
-      if (error && error.status === 429) throw new Error("Too many requests. Please wait a minute and try again.");
-      if (error && !error.status) throw new Error("We couldn't send the reset email. Check your connection and try again.");
+      if (error) throw new Error(error.status === 429 ? "Too many requests. Please wait a minute and try again." : "We couldn't send a reset email right now. Please try again in a few minutes.");
       const msg = "If an account exists for that email, a password reset link is on its way.";
       setResetNotice(msg);
       toast.success(msg);
