@@ -20,6 +20,7 @@ export const Route = createFileRoute("/auth_/callback")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
+  validateSearch: (s: Record<string, unknown>): { mode?: "recovery" } => (s["mode"] === "recovery" ? { mode: "recovery" } : {}),
   component: ConfirmationPage,
 });
 
@@ -39,7 +40,7 @@ async function verifyRecovery(href: string) {
 }
 
 function ConfirmationPage() {
-  const isRecovery = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "recovery";
+  const isRecovery = Route.useSearch().mode === "recovery";
   return isRecovery ? <RecoveryPage /> : <EmailConfirmation />;
 }
 
