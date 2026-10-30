@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Camera, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/AppShell";
+import { EmptyState, PageHeader } from "@/components/AppShell";
 import { QueryFeedback } from "@/components/QueryFeedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,7 @@ function ProfilePage() {
   const q = useQuery({
     queryKey: ["profile", me?.id],
     enabled: !!me,
-    queryFn: async () => unwrap(await supabase.from("profiles").select("*").eq("id", me!.id).single()),
+    queryFn: async () => unwrap(await supabase.from("profiles").select("*").eq("id", me!.id).maybeSingle()),
   });
   const p = q.data;
   const [name, setName] = useState("");
@@ -64,7 +64,13 @@ function ProfilePage() {
   }, [p]);
 
   if (q.error) return <QueryFeedback error={q.error} retry={q.refetch} />;
-  if (!p || !me) return <p role="status" className="text-muted-foreground">Loading profile…</p>;
+  if (!me || q.isPending) return <p role="status" className="text-muted-foreground">Loading profile…</p>;
+  if (!p) return (
+    <div>
+      <PageHeader kicker="Account" title="Your profile" />
+      <EmptyState title="Profile not set up yet" body="Your account doesn't have a profile record. Try again in a moment, or sign out and back in. If it persists, contact the Clippza team." action={<Button variant="lime" onClick={() => q.refetch()}>Try again</Button>} />
+    </div>
+  );
 
   const nameLock = nextChangeDate(p.display_name_changed_at, DISPLAY_NAME_DAYS);
   const userLock = p.username ? nextChangeDate(p.username_changed_at, USERNAME_DAYS) : null;
