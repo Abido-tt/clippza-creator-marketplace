@@ -29,6 +29,13 @@
       "when": 1793297678781,
       "tag": "0003_profile_mvp",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793377039276,
+      "tag": "0004_provision_accounts",
+      "breakpoints": true
     }
   ]
 }
