@@ -15,7 +15,7 @@ export function AppFooter() {
             rel="noopener noreferrer"
             className="font-medium text-lime underline decoration-lime/40 underline-offset-4 transition hover:decoration-lime focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
           >
-            Built by abdelrah,am
+            Built by Abdelrahman
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </p>
