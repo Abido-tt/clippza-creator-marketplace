@@ -24,18 +24,32 @@ export const Route = createFileRoute("/auth_/callback")({
   component: ConfirmationPage,
 });
 
+// Recovery proof: a PASSWORD_RECOVERY event or a recovery token/code in the link. A normal session alone never qualifies.
+let recoveryEvent = false;
+const initialHref = typeof window === "undefined" ? "" : window.location.href;
+if (typeof window !== "undefined") {
+  supabase.auth.onAuthStateChange((event) => { if (event === "PASSWORD_RECOVERY") recoveryEvent = true; });
+}
+
+function withTimeout<T>(p: Promise<T>, ms = 10000) {
+  return Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+}
+
 async function verifyRecovery(href: string) {
-  const url = new URL(href);
-  const hash = new URLSearchParams(url.hash.slice(1));
-  if (url.searchParams.has("error") || url.searchParams.has("error_code") || hash.has("error") || hash.has("error_code")) throw new Error("expired");
-  // The SDK consumes recovery tokens/codes during initialization.
-  const { data } = await supabase.auth.getSession();
-  const code = url.searchParams.get("code");
-  if (!data.session && code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) throw error;
+  const urls = [href, initialHref].filter(Boolean).map((h) => new URL(h));
+  const hashes = urls.map((u) => new URLSearchParams(u.hash.slice(1)));
+  if (urls.some((u) => u.searchParams.has("error") || u.searchParams.has("error_code")) || hashes.some((h) => h.has("error") || h.has("error_code"))) throw new Error("expired");
+  const code = urls.map((u) => u.searchParams.get("code")).find(Boolean) ?? null;
+  const tokenLink = hashes.some((h) => h.get("type") === "recovery" && h.has("access_token"));
+  if (!code && !tokenLink && !recoveryEvent) throw new Error("missing");
+  // getSession waits for SDK initialization, which consumes recovery tokens/codes.
+  const { data } = await withTimeout(supabase.auth.getSession());
+  if (code && !recoveryEvent) {
+    if (data.session) throw new Error("unverified"); // code was not a recovery exchange
+    const { error } = await withTimeout(supabase.auth.exchangeCodeForSession(code));
+    if (error) throw new Error("expired");
   }
-  const { data: u, error } = await supabase.auth.getUser();
+  const { data: u, error } = await withTimeout(supabase.auth.getUser());
   if (error || !u.user) throw new Error("no session");
 }
 
