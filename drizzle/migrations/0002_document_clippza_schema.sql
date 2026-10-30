@@ -1,1 +1,0 @@
-COMMENT ON TABLE public.submissions IS 'Clip submissions; review fields are admin-only, views and rewards are manual noncash records.';
