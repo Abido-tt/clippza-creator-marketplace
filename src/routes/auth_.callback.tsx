@@ -24,33 +24,56 @@ export const Route = createFileRoute("/auth_/callback")({
   component: ConfirmationPage,
 });
 
-// Recovery proof: a PASSWORD_RECOVERY event or a recovery token/code in the link. A normal session alone never qualifies.
-let recoveryEvent = false;
+// Subscribe before SDK initialization can finish; only its recovery event proves the link type.
 const initialHref = typeof window === "undefined" ? "" : window.location.href;
-if (typeof window !== "undefined") {
-  supabase.auth.onAuthStateChange((event) => { if (event === "PASSWORD_RECOVERY") recoveryEvent = true; });
-}
+const initialRecoveryUrl = initialHref ? new URL(initialHref) : null;
+const initialRecoveryHash = new URLSearchParams(initialRecoveryUrl?.hash.slice(1));
+const hasInitialRecoveryLink = initialRecoveryUrl?.searchParams.get("mode") === "recovery" &&
+  (Boolean(initialRecoveryUrl.searchParams.get("code")) ||
+    (initialRecoveryHash.get("type") === "recovery" && Boolean(initialRecoveryHash.get("access_token"))));
+let stopRecoveryListener: (() => void) | undefined;
+const recoveryProof = new Promise<{ userId: string; accessToken: string }>((resolve) => {
+  if (typeof window === "undefined" || !hasInitialRecoveryLink) return;
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event !== "PASSWORD_RECOVERY" || !session) return;
+    const linkToken = initialRecoveryHash.get("access_token");
+    if (linkToken && linkToken !== session.access_token) return;
+    resolve({ userId: session.user.id, accessToken: session.access_token });
+  });
+  stopRecoveryListener = () => data.subscription.unsubscribe();
+});
 
-function withTimeout<T>(p: Promise<T>, ms = 10000) {
-  return Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+async function withTimeout<T>(p: Promise<T>, ms = 10000) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([p, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error("timeout")), ms);
+    })]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function verifyRecovery(href: string) {
   const urls = [href, initialHref].filter(Boolean).map((h) => new URL(h));
   const hashes = urls.map((u) => new URLSearchParams(u.hash.slice(1)));
   if (urls.some((u) => u.searchParams.has("error") || u.searchParams.has("error_code")) || hashes.some((h) => h.has("error") || h.has("error_code"))) throw new Error("expired");
-  const code = urls.map((u) => u.searchParams.get("code")).find(Boolean) ?? null;
-  const tokenLink = hashes.some((h) => h.get("type") === "recovery" && h.has("access_token"));
-  if (!code && !tokenLink && !recoveryEvent) throw new Error("missing");
-  // getSession waits for SDK initialization, which consumes recovery tokens/codes.
-  const { data } = await withTimeout(supabase.auth.getSession());
-  if (code && !recoveryEvent) {
-    if (data.session) throw new Error("unverified"); // code was not a recovery exchange
-    const { error } = await withTimeout(supabase.auth.exchangeCodeForSession(code));
-    if (error) throw new Error("expired");
+  if (!hasInitialRecoveryLink) throw new Error("missing");
+  try {
+    // initialize() includes the SDK's automatic code exchange and notification flush.
+    // Its session alone is insufficient: wait independently for PASSWORD_RECOVERY.
+    const [initialized, proof] = await withTimeout(Promise.all([
+      supabase.auth.initialize(), recoveryProof,
+    ]));
+    if (initialized.error) throw new Error("expired");
+    const { data, error: sessionError } = await withTimeout(supabase.auth.getSession());
+    if (sessionError || !data.session || data.session.access_token !== proof.accessToken ||
+      data.session.user.id !== proof.userId) throw new Error("unverified");
+    const { data: u, error } = await withTimeout(supabase.auth.getUser());
+    if (error || !u.user || u.user.id !== proof.userId) throw new Error("no session");
+  } finally {
+    stopRecoveryListener?.();
   }
-  const { data: u, error } = await withTimeout(supabase.auth.getUser());
-  if (error || !u.user) throw new Error("no session");
 }
 
 function ConfirmationPage() {
