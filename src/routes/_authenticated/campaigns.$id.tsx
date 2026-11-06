@@ -93,7 +93,7 @@ function Detail() {
             <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>{editing ? "Cancel editing" : "Edit campaign"}</Button>
           </div>
         )}
-        {owner && editing && <CampaignEditor campaign={c} close={() => setEditing(false)} saved={() => { qc.invalidateQueries(); }} />}
+        {owner && editing && <CampaignEditor campaign={c} rewardLocked={!!subs?.length} close={() => setEditing(false)} saved={() => { qc.invalidateQueries(); }} />}
       </div>
 
       {me?.isClipper && c.status === "open" && (

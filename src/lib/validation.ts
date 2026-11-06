@@ -28,3 +28,8 @@ export const reviewSchema = z.object({
 });
 
 export const signupRole = (role: unknown): "client" | "clipper" => role === "client" ? "client" : "clipper";
+export const isRewardLockedError = (e: { message?: string } | null) => !!e?.message?.includes("Reward terms are locked");
+
+/** True when the edit changes reward terms; mirrors the DB's IS DISTINCT FROM (null equals null). */
+export const rewardTermsChanged = (before: { reward_rate: number | null; reward_description: string }, after: { reward_rate: number | null; reward_description: string }) =>
+  before.reward_rate !== after.reward_rate || before.reward_description !== after.reward_description;

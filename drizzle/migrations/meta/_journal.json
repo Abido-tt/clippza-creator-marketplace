@@ -43,6 +43,13 @@
       "when": 1793952634084,
       "tag": "0005_unique_submission_url",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793961485086,
+      "tag": "0006_lock_reward_terms",
+      "breakpoints": true
     }
   ]
 }
