@@ -11,10 +11,10 @@ export function isPublicHttpUrl(value: string) {
 
 /** Mirrors public.normalize_clip_url: trim, drop #fragment, lowercase scheme+host, strip trailing slashes; path/query case kept. */
 export function normalizeClipUrl(value: string) {
-  const v = value.split("#")[0].trim();
+  const v = (value.split("#")[0] ?? "").trim();
   const m = v.match(/^([a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^/?]*)([^?]*)(\?.*)?$/);
   if (!m) return v;
-  return m[1].toLowerCase() + m[2].replace(/\/+$/, "") + (m[3] ?? "");
+  return (m[1] ?? "").toLowerCase() + (m[2] ?? "").replace(/\/+$/, "") + (m[3] ?? "");
 }
 
 export const isDuplicateError = (e: { code?: string } | null) => e?.code === "23505";
