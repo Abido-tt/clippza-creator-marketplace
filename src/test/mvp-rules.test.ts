@@ -21,3 +21,14 @@ describe("Clippza rules", () => {
   it("proposed rewards must be finite and nonnegative", () => { expect(reviewSchema.safeParse({ ...valid, proposed_reward: -1 }).success).toBe(false); expect(reviewSchema.safeParse({ ...valid, proposed_reward: Infinity }).success).toBe(false); });
   it("only approval and rejection are review decisions", () => { expect(reviewSchema.safeParse({ ...valid, status: "submitted" }).success).toBe(false); expect(reviewSchema.safeParse({ ...valid, status: "rejected" }).success).toBe(true); });
 });
+describe("reward terms lock", () => {
+  it("treats null vs null as unchanged and any edit as a change", () => {
+    expect(rewardTermsChanged({ reward_rate: null, reward_description: "" }, { reward_rate: null, reward_description: "" })).toBe(false);
+    expect(rewardTermsChanged({ reward_rate: null, reward_description: "" }, { reward_rate: 5, reward_description: "" })).toBe(true);
+    expect(rewardTermsChanged({ reward_rate: 5, reward_description: "a" }, { reward_rate: 5, reward_description: "b" })).toBe(true);
+  });
+  it("recognises the database lock message", () => {
+    expect(isRewardLockedError({ message: "Reward terms are locked once a clip has been submitted" })).toBe(true);
+    expect(isRewardLockedError({ message: "other" })).toBe(false);
+  });
+});
