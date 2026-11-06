@@ -16,6 +16,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { CampaignEditor } from "@/components/CampaignEditor";
 import { QueryFeedback } from "@/components/QueryFeedback";
 import { unwrap } from "@/lib/data";
+import { normalizeClipUrl, isDuplicateError } from "@/lib/validation";
 
 type CStatus = Database["public"]["Enums"]["campaign_status"];
 
@@ -63,8 +64,9 @@ function Detail() {
     if (!me?.isClipper) return void toast.error("A Clipper account is required");
     if (!isHttpUrl(url)) return void toast.error("Enter a public URL starting with http(s)://");
     setBusy(true);
-    const { error } = await supabase.from("submissions").insert({ campaign_id: id, clipper_id: me.id, clip_url: url.trim(), note: note.trim() || null });
+    const { error } = await supabase.from("submissions").insert({ campaign_id: id, clipper_id: me.id, clip_url: normalizeClipUrl(url), note: note.trim() || null });
     setBusy(false);
+    if (isDuplicateError(error)) return void toast.error("You've already submitted this clip to this campaign.");
     if (error) return void toast.error(error.message);
     toast.success("Clip submitted for review");
     setUrl(""); setNote("");
