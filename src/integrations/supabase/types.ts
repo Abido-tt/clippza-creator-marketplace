@@ -193,6 +193,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_clip_url: { Args: { value: string }; Returns: string }
       owns_campaign: { Args: { _id: string }; Returns: boolean }
       valid_public_link: { Args: { value: string }; Returns: boolean }
     }
