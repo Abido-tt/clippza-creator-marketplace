@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { isPublicHttpUrl, reviewSchema, signupRole } from "@/lib/validation";
+import { isPublicHttpUrl, normalizeClipUrl, reviewSchema, signupRole } from "@/lib/validation";
+
+describe("normalizeClipUrl", () => {
+  it("treats trailing slash, host case, whitespace and fragment as the same clip", () => {
+    const base = "https://www.tiktok.com/@me/video/123";
+    for (const v of [" https://WWW.TikTok.com/@me/video/123/ ", "HTTPS://www.tiktok.com/@me/video/123#t=1", base + "//"]) expect(normalizeClipUrl(v)).toBe(base);
+  });
+  it("keeps path and query case so different clip IDs stay different", () => {
+    expect(normalizeClipUrl("https://youtu.be/AbC?si=X")).toBe("https://youtu.be/AbC?si=X");
+    expect(normalizeClipUrl("https://youtu.be/abc")).not.toBe(normalizeClipUrl("https://youtu.be/ABC"));
+  });
+});
 
 const valid = { id: "11111111-1111-4111-8111-111111111111", status: "approved", reported_views: 1200, proposed_reward: 12.5, review_note: "Reviewed manually" };
 describe("Clippza rules", () => {
