@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPublicHttpUrl, normalizeClipUrl, reviewSchema, signupRole } from "@/lib/validation";
+import { isPublicHttpUrl, normalizeClipUrl, reviewSchema, signupRole, rewardTermsChanged, isRewardLockedError } from "@/lib/validation";
 
 describe("normalizeClipUrl", () => {
   it("treats trailing slash, host case, whitespace and fragment as the same clip", () => {
